@@ -95,7 +95,7 @@ paths:
         - my_evil_corp_auth:
             - sn_user
     
-  /v1/posts/files:
+  /v1/files:
     post:
       tags:
         - media
@@ -896,7 +896,7 @@ paths:
         - my_evil_corp_auth:
             - sn_user
 
-  /v1/users/{id}/infos:
+  /v1/users/{id}:
     get:
       tags:
         - users
@@ -970,7 +970,7 @@ components:
           type: string
           example: 'post description'
         files:
-          description: 'List of files uploaded via /v1/posts/files' 
+          description: 'List of files uploaded via /v1/files' 
           type: array
           items:
             type: string
@@ -1120,7 +1120,7 @@ components:
           description: 'comment text' 
           type: string
         files:
-          description: 'List of files uploaded via /v1/posts/files' 
+          description: 'List of files uploaded via /v1/files' 
           type: array
           items:
             type: string
@@ -1135,7 +1135,7 @@ components:
           description: 'comment text' 
           type: string
         files:
-          description: 'List of files uploaded via /v1/posts/files' 
+          description: 'List of files uploaded via /v1/files' 
           type: array
           items:
             type: string
