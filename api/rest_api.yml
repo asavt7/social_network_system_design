@@ -69,8 +69,7 @@ paths:
           required: true
           description: 'Unique identifier of the post'
           schema:
-            type: integer
-            example: 12345
+            type: string
       requestBody:
         description: Update an existent post in the store
         content:
@@ -229,26 +228,19 @@ paths:
         - my_evil_corp_auth:
             - sn_user
   
-  /v1/users/{user_id}/posts/{id}/reactions:
+  /v1/posts/{id}/reactions:
     get:
       tags:
         - reactions
       summary: 'Retreve post reactions'
       operationId: getPostReaction
       parameters:
-        - name: user_id
-          in: path
-          required: true
-          description: 'user ID'
-          schema:
-            type: integer
         - name: id
           in: path
           required: true
           description: 'Unique identifier of the post'
           schema:
-            type: integer
-            example: 12345
+            type: string
         - name: limit
           in: query
           required: false
@@ -290,19 +282,12 @@ paths:
       summary: 'Put a reaction to the post'
       operationId: putReactionToPost
       parameters:
-        - name: user_id
-          in: path
-          required: true
-          description: 'user ID'
-          schema:
-            type: integer
         - name: id
           in: path
           required: true
           description: 'Unique identifier of the post'
           schema:
-            type: integer
-            example: 12345
+            type: string
       requestBody:
         required: true
         content:
@@ -332,19 +317,12 @@ paths:
       summary: 'Remove a reaction from the post'
       operationId: deleteReactionFromPost
       parameters:
-        - name: user_id
-          in: path
-          required: true
-          description: 'user ID'
-          schema:
-            type: integer
         - name: id
           in: path
           required: true
           description: 'Unique identifier of the post'
           schema:
-            type: integer
-            example: 12345
+            type: string
       responses:
         '200':
           description: 'Successfully added reaction'
@@ -358,26 +336,19 @@ paths:
         - my_evil_corp_auth:
             - sn_user
            
-  /v1/users/{user_id}/posts/{id}/comments:
+  /v1/posts/{id}/comments:
     get:
       tags:
         - comments
       summary: 'Retreve post comments'
       operationId: getPostComments
       parameters:
-        - name: user_id
-          in: path
-          required: true
-          description: 'user ID'
-          schema:
-            type: integer
         - name: id
           in: path
           required: true
           description: 'Unique identifier of the post'
           schema:
-            type: integer
-            example: 12345
+            type: string
         - name: limit
           in: query
           required: false
@@ -419,19 +390,12 @@ paths:
       summary: 'Add comment to the post'
       operationId: addCommentToPost
       parameters:
-        - name: user_id
-          in: path
-          required: true
-          description: 'user ID'
-          schema:
-            type: integer
         - name: id
           in: path
           required: true
           description: 'Unique identifier of the post'
           schema:
-            type: integer
-            example: 12345
+            type: string
       requestBody:
         required: true
         content:
@@ -456,26 +420,19 @@ paths:
             - sn_user
             
   
-  /v1/users/{user_id}/posts/{id}/comments/{comment_id}:
+  /v1/posts/{id}/comments/{comment_id}:
     delete:
       tags:
         - comments
       summary: 'Remove a comment from the post'
       operationId: deletePostComment
       parameters:
-        - name: user_id
-          in: path
-          required: true
-          description: 'user ID'
-          schema:
-            type: integer
         - name: id
           in: path
           required: true
           description: 'Unique identifier of the post'
           schema:
-            type: integer
-            example: 12345
+            type: string
         - name: comment_id
           in: path
           required: true
@@ -502,19 +459,12 @@ paths:
       summary: 'Update comment'
       operationId: updatePostComment
       parameters:
-        - name: user_id
-          in: path
-          required: true
-          description: 'user ID'
-          schema:
-            type: integer
         - name: id
           in: path
           required: true
           description: 'Unique identifier of the post'
           schema:
-            type: integer
-            example: 12345
+            type: string
         - name: comment_id
           in: path
           required: true
@@ -1004,6 +954,8 @@ components:
     Post:
       type: object
       properties:
+        id:
+          type: string
         creator_id:
           type: integer
           example: 'post creator user_id'
@@ -1086,7 +1038,7 @@ components:
           description: 'post comment id' 
           type: integer
         post_id:
-          type: integer
+          type: string
           description: 'id of linked post'
         user_id:
           type: integer
