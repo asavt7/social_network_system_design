@@ -1,0 +1,1159 @@
+openapi: 3.0.3
+info:
+  title: Social network API
+  description: |-
+    This is social network API Gateway based on the OpenAPI 3.0 specification.
+    You can find more at https://github.com/asavt7/social_network_system_design
+  version: 1.0.0
+externalDocs:
+  description: Find out more about it
+  url: https://github.com/asavt7/social_network_system_design
+
+tags:
+  - name: feeds
+    description: Everything about feeds
+  - name: posts
+    description: Everything about posts
+  - name: subscriptions
+    description: Everything about subscriptions
+  - name: users
+    description: Everything about users
+  - name: reactions
+    description: Everything about reactions to posts
+  - name: media
+    description: Everything about media files
+  - name: comments
+    description: Everything about comments to posts
+
+paths:
+
+  /v1/posts:
+    post:
+      tags:
+        - posts
+      summary: Create new post
+      description: Create
+      operationId: createPost
+      requestBody:
+        description: Create a new post
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePostRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'          
+        '400':
+          description: Bad request
+        '500':
+          description: Internal server error
+      security:
+        - my_evil_corp_auth:
+            - sn_user
+  
+  /v1/posts/{id}:
+    put:
+      tags:
+        - posts
+      summary: Update an existing post
+      description: Update an existing post by Id
+      operationId: updatePost
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 'Unique identifier of the post'
+          schema:
+            type: string
+      requestBody:
+        description: Update an existent post in the store
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePostRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'          
+        '400':
+          description: Bad request
+        '404':
+          description: Post not found
+        '500':
+          description: Internal server error
+      security:
+        - my_evil_corp_auth:
+            - sn_user
+    
+  /v1/files:
+    post:
+      tags:
+        - media
+      summary: 'Upload an file (image, photo)'
+      operationId: uploadPostFile
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: 'The image file to upload'
+      responses:
+        '200':
+          description: 'Successfully uploaded file'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: 
+                    type: string
+                    format: uuid
+                  url:
+                    type: string
+                    description: URL of the uploaded file
+                    example: "https://api.example.com/images/12345.jpg"
+        '400':
+          description: Bad request
+        '500':
+          description: Internal server error
+      security:
+        - my_evil_corp_auth:
+            - sn_user
+    get:
+      tags:
+        - media
+      summary: 'Retrieve user-uploaded files'
+      operationId: getPostFiles
+      parameters:
+        - name: from
+          in: query
+          required: false
+          description: 'Timestamp to filter files uploaded from this time (ISO 8601 format)'
+          schema:
+            type: string
+            format: date-time
+            example: '2023-10-01T00:00:00Z'  # Example start timestamp in ISO 8601 format
+        - name: to
+          in: query
+          required: false
+          description: 'Timestamp to filter files uploaded to this time (ISO 8601 format)'
+          schema:
+            type: string
+            format: date-time
+            example: '2023-10-31T23:59:59Z'  # Example end timestamp in ISO 8601 format
+        - name: limit
+          in: query
+          required: false
+          description: 'Maximum number of files to return'
+          schema:
+            type: integer
+            maximum: 10000  # Optional maximum limit
+      responses:
+        '200':
+          description: 'Successfully retrieved files'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  files:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PostPhoto'
+        '400':
+          description: Bad request
+        '500':
+          description: Internal server error
+      security:
+        - my_evil_corp_auth:
+            - sn_user
+  
+  /v1/users/{user_id}/posts:
+    get:
+      tags:
+        - posts
+      summary: 'Retrieve posts by a specific user'
+      operationId: getUserPosts
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: 'user ID'
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          required: false
+          description: 'Maximum number of posts to return'
+          schema:
+            type: integer
+            maximum: 25
+        - name: offset
+          in: query
+          required: false
+          description: 'ID of the last post retrieved for pagination'
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  posts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Post'          
+        '400':
+          description: Bad request
+        '500':
+          description: Internal server error
+      security:
+        - my_evil_corp_auth:
+            - sn_user
+  
+  /v1/posts/{id}/reactions:
+    get:
+      tags:
+        - reactions
+      summary: 'Retreve post reactions'
+      operationId: getPostReaction
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 'Unique identifier of the post'
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          description: 'Maximum number of reactions to return'
+          schema:
+            type: integer
+            maximum: 1000
+        - name: offset
+          in: query
+          required: false
+          description: 'ID of the last reactions retrieved for pagination'
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 'Successfully retrieved reactions'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reactions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PostReactions'
+        '400':
+          description: Bad request
+        '404':
+          description: 'Post not found'
+        '500':
+          description: Internal server error
+      security:
+          - my_evil_corp_auth:
+              - sn_user
+    
+    post:
+      tags:
+        - reactions
+      summary: 'Put a reaction to the post'
+      operationId: putReactionToPost
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 'Unique identifier of the post'
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reaction_id:
+                  type: integer
+                  description: 'The id of reaction (e.g., like, love, laugh)'
+      responses:
+        '200':
+          description: 'Successfully added reaction'
+        '400':
+          description: Bad request
+        '404':
+          description: 'Post not found'
+        '500':
+          description: Internal server error
+      security:
+        - my_evil_corp_auth:
+            - sn_user
+            
+    delete:
+      tags:
+        - reactions
+      summary: 'Remove a reaction from the post'
+      operationId: deleteReactionFromPost
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 'Unique identifier of the post'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'Successfully added reaction'
+        '400':
+          description: Bad request
+        '404':
+          description: 'Post not found'
+        '500':
+          description: Internal server error
+      security:
+        - my_evil_corp_auth:
+            - sn_user
+           
+  /v1/posts/{id}/comments:
+    get:
+      tags:
+        - comments
+      summary: 'Retreve post comments'
+      operationId: getPostComments
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 'Unique identifier of the post'
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          description: 'Maximum number of comments to return'
+          schema:
+            type: integer
+            maximum: 100
+        - name: offset
+          in: query
+          required: false
+          description: 'ID of the last comments retrieved for pagination'
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 'Successfully retrieved reactions'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reactions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PostComment'
+        '400':
+          description: Bad request
+        '404':
+          description: 'Post not found'
+        '500':
+          description: Internal server error
+      security:
+          - my_evil_corp_auth:
+              - sn_user
+    
+    post:
+      tags:
+        - comments
+      summary: 'Add comment to the post'
+      operationId: addCommentToPost
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 'Unique identifier of the post'
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePostCommentRequest'
+      responses:
+        '200':
+          description: 'Successfully'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostComment'
+        '400':
+          description: Bad request
+        '404':
+          description: 'Post not found'
+        '500':
+          description: Internal server error
+      security:
+        - my_evil_corp_auth:
+            - sn_user
+            
+  
+  /v1/posts/{id}/comments/{comment_id}:
+    delete:
+      tags:
+        - comments
+      summary: 'Remove a comment from the post'
+      operationId: deletePostComment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 'Unique identifier of the post'
+          schema:
+            type: string
+        - name: comment_id
+          in: path
+          required: true
+          description: 'Comment ID'
+          schema:
+            type: integer
+            example: 12345
+      responses:
+        '200':
+          description: 'Successfully deleted'
+        '400':
+          description: Bad request
+        '404':
+          description: 'Post not found'
+        '500':
+          description: Internal server error
+      security:
+        - my_evil_corp_auth:
+            - sn_user 
+  
+    put:
+      tags:
+        - comments
+      summary: 'Update comment'
+      operationId: updatePostComment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 'Unique identifier of the post'
+          schema:
+            type: string
+        - name: comment_id
+          in: path
+          required: true
+          description: 'Comment ID'
+          schema:
+            type: integer
+            example: 12345
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePostCommentRequest'
+      responses:
+        '200':
+          description: 'Successfully'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostComment'
+        '400':
+          description: Bad request
+        '404':
+          description: 'Post not found'
+        '500':
+          description: Internal server error
+      security:
+        - my_evil_corp_auth:
+            - sn_user 
+  
+  /v1/locations:
+    get:
+      tags:
+        - locations
+      summary: Retrieve locations
+      description: Retrieves a list of locations based on optional coordinates, search text
+      operationId: getLocations
+      parameters:
+        - name: latitude
+          in: query
+          required: false
+          description: Latitude for filtering locations
+          schema:
+            type: number
+            format: float
+            example: 37.7749
+        - name: longitude
+          in: query
+          required: false
+          description: Longitude for filtering locations
+          schema:
+            type: number
+            format: float
+            example: -122.4194
+        - name: search
+          in: query
+          required: false
+          description: Text string for searching locations (e.g., name or description)
+          schema:
+            type: string
+            example: "park"
+        - name: limit
+          in: query
+          required: false
+          description: Maximum number of locations to return
+          schema:
+            type: integer
+            maximum: 10000
+      responses:
+        '200':
+          description: A list of locations retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Location'
+        '400':
+          description: Bad request
+        '500':
+          description: Internal server error
+      security:
+          - my_evil_corp_auth:
+              - sn_user
+  
+  /v1/locations/popular:
+    get:
+      tags:
+        - locations
+      summary: Retrieve popular locations
+      description: Retrieves recommended popular travel locations
+      operationId: getPopularLocations
+      parameters:
+        - name: latitude
+          in: query
+          required: false
+          description: Latitude for filtering locations
+          schema:
+            type: number
+            format: float
+            example: 37.7749
+        - name: longitude
+          in: query
+          required: false
+          description: Longitude for filtering locations
+          schema:
+            type: number
+            format: float
+            example: -122.4194
+        - name: search
+          in: query
+          required: false
+          description: Text string for searching locations (e.g., name or description)
+          schema:
+            type: string
+            example: "park"
+        - name: limit
+          in: query
+          required: false
+          description: Maximum number of locations to return
+          schema:
+            type: integer
+            maximum: 10000
+      responses:
+        '200':
+          description: A list of locations retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Location'
+        '400':
+          description: Bad request
+        '500':
+          description: Internal server error
+      security:
+          - my_evil_corp_auth:
+              - sn_user
+    
+  /v1/locations/{id}:
+    get:
+      tags:
+        - locations
+      summary: Retrieve a specific location
+      description: Retrieves details of a location by its unique identifier
+      operationId: getLocationById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique identifier of the location
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Location retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Coordinates'
+        '400':
+          description: Bad request
+        '404':
+          description: Not found
+        '500':
+          description: Internal server error
+      security:
+          - my_evil_corp_auth:
+              - sn_user
+           
+         
+  /v1/users/{user_id}/subscriptions:
+    get:
+      tags:
+        - users
+        - subscriptions
+      summary: 'Retrieve the list of all subscriptions for a user'
+      operationId: getUserSubscriptions
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: 'user ID'
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 'Successfully retrieved user subscriptions'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  subscriptions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Subscription'
+        '404':
+          description: 'User not found'
+        '500':
+          description: Internal server error
+      security:
+          - my_evil_corp_auth:
+              - sn_user
+      
+    post:
+      tags:
+        - users
+        - subscriptions
+      summary: 'Subscribe to another user'
+      operationId: subscribeToUser
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: 'user ID'
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 'Successfully subscribed to the user'
+        '400':
+          description: Bad request
+        '404':
+          description: 'User not found'
+        '500':
+          description: Internal server error
+      security:
+          - my_evil_corp_auth:
+              - sn_user
+      
+    delete:
+      tags:
+        - users
+        - subscriptions
+      summary: 'Unsubscribe from another user'
+      operationId: unsubscribeFromUser
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: 'user ID'
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 'Successfully unsubscribed from the user'
+        '404':
+          description: 'User or subscription not found'
+        '500':
+          description: Internal server error
+      security:
+          - my_evil_corp_auth:
+              - sn_user   
+      
+  /v1/users/{user_id}/subscribers:
+    get:
+      tags:
+        - users
+        - subscriptions
+      summary: 'Retrieve the list of all subscribers for a user'
+      operationId: getUserSubscribers
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: 'user ID'
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 'Successfully retrieved user subscriptions'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  subscribers:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Subscriber'
+        '404':
+          description: 'User not found'
+        '500':
+          description: Internal server error
+      security:
+          - my_evil_corp_auth:
+              - sn_user
+            
+            
+  /v1/feeds:
+    get:
+      tags:
+        - feeds
+        - posts
+      summary: 'Retrieve user posts feed'
+      operationId: getUserFeed
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          description: 'The maximum number of posts to return'
+          schema:
+            type: integer
+            example: 10
+        - name: offset
+          in: query
+          required: false
+          description: 'The ID of the last post retrieved to continue from'
+          schema:
+            type: integer
+            example: 12345
+      responses:
+        '200':
+          description: 'Successfully'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  posts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Post'
+        '400':
+          description: Bad request
+        '500':
+          description: Internal server error
+      security:
+        - my_evil_corp_auth:
+            - sn_user
+
+  /v1/feeds/locations/{location_id}:
+    get:
+      tags:
+        - feeds
+        - posts
+      summary: 'Retrieve the posts for popular travel locations'
+      operationId: getNewsFeed
+      parameters:
+        - name: location_id
+          in: path
+          required: true
+          description: 'ID of travel location'
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          required: false
+          description: 'The maximum number of posts to return'
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          required: false
+          description: 'The ID of the last post retrieved to continue from'
+          schema:
+            type: integer
+            example: 12345
+      responses:
+        '200':
+          description: 'Successfully'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  posts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Post'
+        '400':
+          description: Bad request
+        '500':
+          description: Internal server error
+      security:
+        - my_evil_corp_auth:
+            - sn_user
+
+  /v1/users/{id}:
+    get:
+      tags:
+        - users
+      summary: 'Retrieve information about a specific user for display in feeds, posts and comments'
+      operationId: getUserInfoById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 'Unique identifier of the user'
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 'User details successfully retrieved'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfo'
+        '404':
+          description: 'User not found'
+        '500':
+          description: Internal server error
+      security:
+          - my_evil_corp_auth:
+              - sn_user
+
+
+components:
+  schemas:
+    Coordinates:
+      type: object
+      properties:
+        latitude:
+          type: number
+          description: Latitude
+          example: 37.7749
+        longitude:
+          type: number
+          description: Longitude
+          example: -122.4194
+      required:
+        - latitude
+        - longitude
+            
+    Location:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the location
+        coordinate:
+          $ref: '#/components/schemas/Coordinates'
+        name:
+          type: string
+          description: Name of the location
+          example: "San Francisco"
+        description:
+          type: string
+          description: Description of the location
+          example: "A popular tourist destination in California."
+      required:
+        - id
+        - coordinates
+        - name
+  
+    CreatePostRequest:
+      type: object
+      properties:
+        text:
+          type: string
+          example: 'post description'
+        files:
+          description: 'List of files uploaded via /v1/files' 
+          type: array
+          items:
+            type: string
+            format: uuid
+        location_id:
+          type: integer
+          description: Identifier for the location
+      required:
+        - text
+        - files
+      
+    UpdatePostRequest:
+      type: object
+      properties:
+        text:
+          type: string
+          example: 'post description'
+        files:
+          description: 'List of files uploaded via /posts/files' 
+          type: array
+          items:
+            type: string
+            format: uuid
+        location_id:
+          type: integer
+          description: 'Identifier for the location'
+      required:
+        - text
+        - files
+    
+    Post:
+      type: object
+      properties:
+        id:
+          type: string
+        creator_id:
+          type: integer
+          example: 'post creator user_id'
+        text:
+          type: string
+          example: 'post description'
+        photos:
+          description: 'List of photos' 
+          type: array
+          items:
+            $ref: '#/components/schemas/PostPhoto'
+        location_id:
+          type: integer
+          description: 'Identifier for the location'
+        created_at:
+          type: string
+          format: datetime
+        updated_at:
+          type: string
+          format: datetime
+      required:
+        - creator_id
+        - text
+        - created_at
+        - updated_at
+        - photos
+      
+    PostPhoto:
+      type: object
+      properties:
+        id:
+          description: uuid
+          type: string
+        url:
+          description: URL-link to file
+          type: string
+          format: uri
+        uploaded_at:
+          type: string
+          format: datetime
+        metadata:
+          type: object
+          description: 'File metadata - format, size, compression, etc'
+      required:
+        - id
+        - url
+        - uploaded_at
+        - metadata
+
+    PostReactions:
+      type: object
+      properties:
+        id:
+          description: 'The id of reaction (e.g., like, love, laugh)' 
+          type: integer
+        count:
+          description: 'Reaction count' 
+          type: integer
+        reactors:
+          type: array
+          items:
+            type: object 
+            properties:
+              user_id:
+                type: integer
+                description: 'user_id of the user who put reaction'
+              reactedAt:
+                type: string
+                format: datetime
+                description: 'The timestamp when the reaction was made'
+      required:
+        - id
+        - count
+        - reactors
+    
+    PostComment:
+      type: object
+      properties:
+        id:
+          description: 'post comment id' 
+          type: integer
+        post_id:
+          type: string
+          description: 'id of linked post'
+        user_id:
+          type: integer
+          description: 'user_id of the user who comment'
+        text:
+          description: 'comment text' 
+          type: string
+        photos:
+          description: 'List of photos' 
+          type: array
+          items:
+            $ref: '#/components/schemas/PostPhoto'
+        created_at:
+          type: string
+          format: datetime
+        updated_at:
+          type: string
+          format: datetime
+      required:
+        - id
+        - user_id
+        - post_id
+        - text
+        - created_at
+        - updated_at
+  
+    CreatePostCommentRequest:
+      type: object
+      properties:
+        text:
+          description: 'comment text' 
+          type: string
+        files:
+          description: 'List of files uploaded via /v1/files' 
+          type: array
+          items:
+            type: string
+            format: uuid
+      required:
+        - text      
+      
+    UpdatePostCommentRequest:
+      type: object
+      properties:
+        text:
+          description: 'comment text' 
+          type: string
+        files:
+          description: 'List of files uploaded via /v1/files' 
+          type: array
+          items:
+            type: string
+            format: uuid
+      required:
+        - text
+
+    Subscriber:
+      type: object
+      properties:
+        user_id:
+          description: 'user ID' 
+          type: integer
+        subscribed_at:
+          type: string
+          format: datetime
+      required:
+        - user_id
+      
+    Subscription:
+      type: object
+      properties:
+        user_id:
+          description: 'user ID' 
+          type: integer
+        subscribed_at:
+          type: string
+          format: datetime
+      required:
+        - user_id
+
+    UserInfo:
+      description: 'User information for display in feeds, posts and comments'
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'user ID'
+        username:
+          type: string
+          description: 'The user’s username/login'
+          example: 'johndoe'
+        fullName:
+          type: string
+          description: 'Full name of the user'
+          example: 'John Doe'
+        createdAt:
+          type: string
+          format: date-time
+          description: 'The timestamp when the user account was created'
+          example: '2024-01-15T10:00:00Z'
+        bio:
+          type: string
+          description: 'A short bio or description about the user'
+          example: 'Software engineer and tech enthusiast'
+        avatarUrl:
+          type: string
+          format: uri
+          description: 'URL to the user’s avatar or profile picture'
+          example: 'https://api.example.com/avatars/123e4567.jpg'
+
+  securitySchemes:
+    my_evil_corp_auth:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: https://my_evil_corp_auth.com/oauth/authorize
+          scopes:
+            sn_user: user of social network
