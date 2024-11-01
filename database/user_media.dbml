@@ -1,0 +1,17 @@
+Project user_media_db {
+  database_type: 'PostgreSQL'
+  Note: 'Social network user_media Database'
+}
+
+// users_media_files stored at s3 storage
+
+// user_media - metadata for users_media_files
+Table user_media {
+  user_id bigint [primary key]
+  id uuid [primary key]
+  url text
+  created_at timestamp
+}
+
+Ref: user_media.user_id > users.id 
+

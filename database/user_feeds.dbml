@@ -1,0 +1,14 @@
+Project user_feeds_db {
+  database_type: 'PostgreSQL'
+  Note: 'Social network user_feeds Database'
+}
+
+Table user_feeds {
+  user_id bigint [primary key]
+  
+  post_author_id bigint 
+  post_id bigint
+}
+Ref: user_feeds.post_author_id > users.id 
+Ref: user_feeds.user_id > users.id 
+Ref: user_feeds.post_id > posts.id 

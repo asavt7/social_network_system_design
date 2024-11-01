@@ -1,0 +1,28 @@
+Project comments_db {
+  database_type: 'PostgreSQL'
+  Note: 'Social network comments Database'
+}
+
+Table comments {
+  post_author_id bigint [primary key, note: 'post author']
+  post_id bigint [primary key]
+  id bigint [primary key]
+  
+  сommenter_id bigint [primary key, note: 'сommenter user_id'] 
+  reply_to_comment_id bigint [primary key]
+
+  created_at timestamp
+  body text [note: 'Content of the post']
+  photo_urls text[]
+
+  updated_at timestamp
+}
+
+Ref: comments.post_author_id > users.id 
+Ref: comments.сommenter_id > users.id 
+
+Ref: comments.post_id > posts.id 
+Ref: comments.post_author_id > posts.user_id 
+
+Ref: comments.reply_to_comment_id > comments.id 
+

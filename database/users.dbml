@@ -1,0 +1,13 @@
+Project users_db {
+  database_type: 'PostgreSQL'
+  Note: 'Social network users Database'
+}
+
+Table users {
+  id bigint [primary key]
+  username varchar(100)
+  created_at timestamp
+
+  avatar_url text
+  bio text
+}
