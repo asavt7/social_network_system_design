@@ -1,0 +1,20 @@
+Project posts_db {
+  database_type: 'PostgreSQL'
+  Note: 'Social network posts Database'
+}
+
+
+Table posts {
+  user_id bigint [primary key]
+  id bigint [primary key]
+  created_at timestamp
+  
+  body text [note: 'Content of the post']
+  photo_urls text[]
+  coordinates POINT
+
+  updated_at timestamp
+}
+
+Ref: posts.user_id > users.id 
+

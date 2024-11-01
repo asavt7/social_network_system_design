@@ -1,0 +1,18 @@
+Project reactions_db {
+  database_type: 'PostgreSQL'
+  Note: 'Social network reactions Database'
+}
+
+Table reactions {
+  post_author_id bigint [primary key, note: 'post author']
+  post_id bigint [primary key]
+  reactor_id bigint [primary key, note: 'reactor user_id']
+  reaction_id int2
+  created_at timestamp
+}
+
+Ref: reactions.post_author_id > users.id 
+Ref: reactions.reactor_id > users.id 
+
+Ref: reactions.post_id > posts.id 
+Ref: reactions.post_author_id > posts.user_id 

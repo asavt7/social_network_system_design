@@ -1,0 +1,12 @@
+Project subsriptions_db {
+  database_type: 'PostgreSQL'
+  Note: 'Social network subsriptions Database'
+}
+
+Table subsriptions {
+  user_id bigint [primary key]
+  subsribe_to_user_id bigint [primary key]
+  created_at timestamp 
+}
+Ref: subsriptions.user_id > users.id 
+Ref: subsriptions.subsribe_to_user_id > users.id 
