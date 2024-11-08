@@ -1,0 +1,80 @@
+@startuml Container diagram
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(user, "User")
+Container(loadBalancer, "Load Balancer", "Nginx", "Uses round robin")
+
+
+
+System_Boundary(coreSystem, "Social network") {
+    Container(apiGateway, "API gateway", "Golang stateless microservice", "API gateway")
+
+    Container_Boundary(posts, "posts subsystem") {
+      Container(postsService, "Posts Service", "Golang stateless microservice", "Provides CRUD API for posts")
+      ContainerDb(postsDb, "Posts database", "PgSQL", "Stores user posts", $tags="db", )
+      Container(postsDbCDC, "Posts DB CDC", "Debezium", "Send post creation/deletion event to queue")
+      ContainerQueue(postsEventsQueue, "Posts events queue", "Kafka", "Message queue for posts service events")
+    }
+
+    Container_Boundary(comments, "comments subsystem") {
+      Container(commentsService, "comments service", "Golang stateless microservice", "Provides CRUD API for comments")
+      ContainerDb(commentsDb, "comments database", "PgSQL", "Stores user comments", $tags="db", )
+    }
+
+    Container_Boundary(reactions, "reactions subsystem") {
+      Container(reactionsService, "reactions service", "Golang stateless microservice", "Provides CRUD API for reactions")
+      ContainerDb(reactionsDb, "reactions database", "PgSQL", "Stores post reactions", $tags="db", )
+    }
+
+    Container_Boundary(subscriptions, "subscriptions subsystem") {
+      Container(subscriptionsService, "subscriptions service", "Golang stateless microservice", "Provides CRUD API for subscriptions")
+      ContainerDb(subscriptionsDb, "subscriptions database", "PgSQL", "Stores user subscriptions", $tags="db", )
+      Container(subscriptionsDbCDC, "subscriptions DB CDC", "Debezium", "Send subscriptions changes events to queue")
+      ContainerQueue(subscriptionsEventsQueue, "subscriptions events queue", "Kafka", "Message queue for subscriptions changes events")
+    }
+
+    Container_Boundary(feed, "feed subsystem") { 
+      Container(feedService, "feed service", "Golang stateless microservice", "Provides CRUD API for feed")
+      ContainerDb(feedDb, "feed database", "PgSQL", "Stores user feed", $tags="db", )
+    }
+
+    Container_Boundary(media, "media subsystem") { 
+      Container(mediaService, "media service", "Golang stateless microservice", "Provides CRUD API for media")
+      ContainerDb(mediaDb, "user media database", "PgSQL", "Stores user media", $tags="db", )
+      ContainerDb(mediaFilesDb, "user media files database", "s3", "Stores user media files", $tags="db", )
+    }
+}
+
+Rel(user, loadBalancer, "Create posts, list feed, send reactions, comment posts, subscribe", "REST")
+Rel(loadBalancer, apiGateway, "", "REST")
+
+Rel(apiGateway, postsService, "Create post/List user posts", "gRPC")
+Rel(postsService, postsDb, "")
+Rel(postsDb, postsDbCDC, "WAL")
+Rel(postsDbCDC, postsEventsQueue, "")
+
+Rel(apiGateway, commentsService, "Add comment/List post comments", "gRPC")
+Rel(commentsService, commentsDb, "")
+
+Rel(apiGateway, reactionsService, "Add reaction/List post reactions", "gRPC")
+Rel(reactionsService, reactionsDb, "")
+
+Rel(apiGateway, subscriptionsService, "Subscribe/List subscriptions", "gRPC")
+Rel(subscriptionsService, subscriptionsDb, "")
+Rel(subscriptionsDb, subscriptionsDbCDC, "WAL")
+Rel(subscriptionsDbCDC, subscriptionsEventsQueue, "")
+
+
+Rel(apiGateway, mediaService, "Upload photo in temporary bucket", "gRPC")
+Rel(mediaService, mediaDb, "Add file info")
+Rel(mediaService, mediaFilesDb, "Upload photo")
+Rel(mediaService, postsEventsQueue, "Pull post creation events and move photos to persistent bucket")
+
+Rel(apiGateway, feedService, "List user feed", "gRPC")
+Rel(feedService, feedDb, "")
+Rel(feedService, postsEventsQueue, "Pull post creation events and update user feed")
+Rel(feedService, subscriptionsService, "Get user subscriptions")
+Rel(feedService, subscriptionsEventsQueue, "Pull user subscription changes and update user feed")
+
+
+@enduml

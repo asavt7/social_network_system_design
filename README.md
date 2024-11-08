@@ -191,3 +191,19 @@ Traffic:
     - READ (файлы) = 60 GB/s
 
   + System is read-intensive
+
+## Модель БД и расчет хостов и дисков
+
+[calculations](database/README.md)
+
+## Design overview
+
+Дизайн системы в нотации [C4 model](https://c4model.com/).
+
+### System context diagram
+
+![System context diagram](architecture/context.svg)
+
+### Container diagram
+
+![Container diagram](architecture/containers.svg)
