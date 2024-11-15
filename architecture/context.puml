@@ -1,0 +1,8 @@
+@startuml System context diagram 
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(user, "User")
+Container(coreSystem, "Social network", "Software system", "Handles actions on posts creation, comments, reactions and provides posts feed")
+
+Rel(user, coreSystem, "Create posts, list feed, send reactions, comment posts")
+@enduml
